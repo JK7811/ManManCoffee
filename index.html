@@ -303,74 +303,99 @@
     </section>
   </div>
 
-  <script>
-    const WHATSAPP_NUMBER = "6594450736";
-    const WHATSAPP_TEXT = "Hi Jkang, I want to know more about Jkang Digital Pack.";
+<script>
+  const WHATSAPP_NUMBER = "6594450736";
+  const WHATSAPP_TEXT = "Hi Jkang, I want to know more about Jkang Digital Pack.";
 
-    document.getElementById("y").textContent = new Date().getFullYear();
+  document.getElementById("y").textContent = new Date().getFullYear();
 
-    const glow = document.getElementById("glow");
-    window.addEventListener("mousemove", (e) => {
-      glow.style.left = e.clientX + "px";
-      glow.style.top  = e.clientY + "px";
-      document.documentElement.style.setProperty("--mx", e.clientX + "px");
-      document.documentElement.style.setProperty("--my", e.clientY + "px");
-    }, { passive:true });
+  const glow = document.getElementById("glow");
 
-    function openWhatsApp(){
-      const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_TEXT)}`;
-      window.open(url, "_blank", "noopener");
+  function setGlow(x, y){
+    glow.style.left = x + "px";
+    glow.style.top  = y + "px";
+    document.documentElement.style.setProperty("--mx", x + "px");
+    document.documentElement.style.setProperty("--my", y + "px");
+  }
+
+  // Desktop
+  window.addEventListener("mousemove", (e) => {
+    setGlow(e.clientX, e.clientY);
+  }, { passive:true });
+
+  // Mobile
+  window.addEventListener("touchmove", (e) => {
+    const t = e.touches && e.touches[0];
+    if(!t) return;
+    setGlow(t.clientX, t.clientY);
+  }, { passive:true });
+
+  function openWhatsApp(){
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_TEXT)}`;
+    window.open(url, "_blank", "noopener");
+  }
+
+  document.getElementById("waInline").addEventListener("click", openWhatsApp);
+
+  // ✅ 修正：这里少了一个引号
+  const waInline = document.getElementById("waInline");
+  if(waInline) waInline.addEventListener("click", openWhatsApp);
+
+  // Stars
+  const c = document.getElementById("stars");
+  const ctx = c.getContext("2d");
+  let w, h, dpr;
+
+  function resize(){
+    dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    w = c.width = Math.floor(innerWidth * dpr);
+    h = c.height = Math.floor(innerHeight * dpr);
+    c.style.width = innerWidth + "px";
+    c.style.height = innerHeight + "px";
+  }
+  resize();
+  addEventListener("resize", resize);
+
+  const STAR_COUNT = Math.floor((innerWidth * innerHeight) / 18000) + 80;
+  const stars = Array.from({length: STAR_COUNT}).map(() => ({
+    x: Math.random()*w, y: Math.random()*h,
+    r: (Math.random()*1.6 + .2) * dpr,
+    v: (Math.random()*0.35 + 0.05) * dpr,
+    a: Math.random()*0.7 + 0.15
+  }));
+
+  function tick(){
+    ctx.clearRect(0,0,w,h);
+
+    const g = ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*0.6);
+    g.addColorStop(0, "rgba(255,255,255,0.02)");
+    g.addColorStop(1, "rgba(0,0,0,0.0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0,0,w,h);
+
+    for(const s of stars){
+      s.y += s.v;
+      if(s.y > h + 10){ s.y = -10; s.x = Math.random()*w; }
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(180,220,255,${s.a})`;
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      ctx.fill();
     }
-    document.getElementById("waBtn").addEventListener("click", openWhatsApp);
-    document.getElementById("waInline).addEventListener("click", openWhatsApp);
+    requestAnimationFrame(tick);
+  }
+  tick();
 
-    const c = document.getElementById("stars");
-    const ctx = c.getContext("2d");
-    let w, h, dpr;
-    function resize(){
-      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
-      w = c.width = Math.floor(innerWidth * dpr);
-      h = c.height = Math.floor(innerHeight * dpr);
-      c.style.width = innerWidth + "px";
-      c.style.height = innerHeight + "px";
-    }
-    resize(); addEventListener("resize", resize);
-
-    const STAR_COUNT = Math.floor((innerWidth * innerHeight) / 18000) + 80;
-    const stars = Array.from({length: STAR_COUNT}).map(() => ({
-      x: Math.random()*w, y: Math.random()*h,
-      r: (Math.random()*1.6 + .2) * dpr,
-      v: (Math.random()*0.35 + 0.05) * dpr,
-      a: Math.random()*0.7 + 0.15
-    }));
-    function tick(){
-      ctx.clearRect(0,0,w,h);
-      const g = ctx.createRadialGradient(w/2,h/2,0,w/2,h/2,Math.max(w,h)*0.6);
-      g.addColorStop(0, "rgba(255,255,255,0.02)");
-      g.addColorStop(1, "rgba(0,0,0,0.0)");
-      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
-      for(const s of stars){
-        s.y += s.v;
-        if(s.y > h + 10){ s.y = -10; s.x = Math.random()*w; }
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(180,220,255,${s.a})`;
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-        ctx.fill();
+  // Reveal
+  const reveals = Array.from(document.querySelectorAll(".reveal"));
+  const io = new IntersectionObserver((entries) => {
+    for(const e of entries){
+      if(e.isIntersecting){
+        e.target.classList.add("show");
+        io.unobserve(e.target);
       }
-      requestAnimationFrame(tick);
     }
-    tick();
-
-    const reveals = Array.from(document.querySelectorAll(".reveal"));
-    const io = new IntersectionObserver((entries) => {
-      for(const e of entries){
-        if(e.isIntersecting){
-          e.target.classList.add("show");
-          io.unobserve(e.target);
-        }
-      }
-    }, { threshold: 0.12 });
-    reveals.forEach(el => io.observe(el));
-  </script>
+  }, { threshold: 0.12 });
+  reveals.forEach(el => io.observe(el));
+</script>
 </body>
 </html>
