@@ -3,677 +3,270 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>4 Number Draw · Jkang Arcade</title>
-<meta name="description" content="4-number draw game (for fun) with animations and visual effects" />
+<title>4 Number Draw · Casino Edition</title>
+
 <style>
-  :root{
-    --bg:#050507;
-    --text:#F6F7FB;
-    --muted:#A7AAB5;
-    --line:rgba(255,255,255,.12);
-    --card:rgba(255,255,255,.06);
-    --card2:rgba(255,255,255,.02);
-    --radius:22px;
-    --shadow:0 26px 80px rgba(0,0,0,.55);
-    --gold:rgba(255,215,130,.95);
-    --violet:rgba(180,120,255,.95);
-    --cyan:rgba(120,200,255,.95);
-    --green:rgba(120,255,180,.92);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    color:var(--text);
-    background:
-      radial-gradient(900px 520px at 20% 30%, rgba(180,120,255,.16), transparent 60%),
-      radial-gradient(900px 520px at 80% 70%, rgba(120,200,255,.14), transparent 60%),
-      radial-gradient(780px 480px at 65% 20%, rgba(255,215,130,.10), transparent 60%),
-      var(--bg);
-    overflow-x:hidden;
-  }
-  a{color:inherit;text-decoration:none}
-  .wrap{max-width:980px;margin:0 auto;padding:22px 16px 90px}
-  .top{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:12px 0;border-bottom:1px solid var(--line);
-    position:sticky;top:0;z-index:20;
-    backdrop-filter:blur(14px);
-    background:linear-gradient(to bottom, rgba(5,5,7,.88), rgba(5,5,7,.35));
-  }
-  .brand{font-weight:900;letter-spacing:.22em;text-transform:uppercase;font-size:13px}
-  .nav{display:flex;gap:10px;color:var(--muted);font-size:13px;align-items:center}
-  .nav a{padding:8px 10px;border-radius:999px;border:1px solid transparent;transition:.2s}
-  .nav a:hover{border-color:var(--line);color:var(--text);transform:translateY(-1px)}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 18px rgba(120,255,180,.35)}
-  h1{
-    margin:18px 0 8px;
-    font-size:54px;letter-spacing:.04em;line-height:1.05;
-    background:linear-gradient(90deg, rgba(255,255,255,.96), rgba(255,215,130,.85), rgba(180,120,255,.80), rgba(120,200,255,.75));
-    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  }
-  .sub{color:var(--muted);line-height:1.85;max-width:860px}
-  .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px}
-  @media(min-width:920px){.grid{grid-template-columns:1.05fr .95fr;align-items:stretch}}
-
-  .card{
-    background:linear-gradient(to bottom, var(--card), var(--card2));
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:16px;
-    position:relative;overflow:hidden;
-  }
-  .card::before{
-    content:"";position:absolute;inset:-1px;
-    background:linear-gradient(135deg, rgba(255,215,130,.18), rgba(180,120,255,.14), rgba(120,200,255,.10), rgba(255,255,255,0));
-    opacity:.22;pointer-events:none;
-  }
-
-  /* ===== Draw stage ===== */
-  .stage{
-    height:340px;
-    border-radius:var(--radius);
-    border:1px solid rgba(255,255,255,.10);
-    background:
-      radial-gradient(520px 260px at 50% 20%, rgba(255,255,255,.08), rgba(255,255,255,.02)),
-      rgba(255,255,255,.02);
-    position:relative;
-    overflow:hidden;
-  }
-  .scan{
-    position:absolute;inset:-30%;
-    background:linear-gradient(120deg, transparent 40%, rgba(255,255,255,.10) 50%, transparent 60%);
-    transform:translateX(-40%) rotate(10deg);
-    animation:scan 3.5s ease-in-out infinite;
-    opacity:.35;pointer-events:none;
-  }
-  @keyframes scan{
-    0%{transform:translateX(-55%) rotate(10deg)}
-    50%{transform:translateX(25%) rotate(10deg)}
-    100%{transform:translateX(65%) rotate(10deg)}
-  }
-
-  .balls{
-    position:absolute;left:50%;top:52%;
-    transform:translate(-50%,-50%);
-    display:flex;gap:12px;flex-wrap:nowrap;
-  }
-  .ball{
-    width:74px;height:74px;border-radius:999px;
-    display:flex;align-items:center;justify-content:center;
-    font-weight:1000;font-size:30px;letter-spacing:.02em;
-    border:1px solid rgba(255,255,255,.14);
-    background:linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.03));
-    box-shadow:0 18px 60px rgba(0,0,0,.55);
-    transform: translateY(0) scale(1);
-    position:relative;
-    user-select:none;
-  }
-  .ball::after{
-    content:""; position:absolute; inset:-2px; border-radius:999px;
-    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.35), transparent 55%);
-    opacity:.65; pointer-events:none;
-  }
-  .ball.lock{
-    border-color:rgba(255,215,130,.40);
-    box-shadow:0 18px 70px rgba(255,215,130,.08), 0 18px 60px rgba(0,0,0,.55);
-  }
-
-  /* roll animation */
-  .rolling{
-    animation:roll 0.18s linear infinite;
-    filter:brightness(1.05);
-  }
-  @keyframes roll{
-    0%{transform:translateY(0) scale(1)}
-    50%{transform:translateY(-3px) scale(1.02)}
-    100%{transform:translateY(0) scale(1)}
-  }
-
-  /* fireworks/confetti */
-  canvas#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-
-  .hud{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;position:relative}
-  .pill{
-    padding:8px 10px;border-radius:999px;
-    border:1px solid rgba(255,255,255,.12);
-    background:rgba(255,255,255,.02);
-    color:var(--muted);font-size:12px;
-  }
-  .btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;position:relative}
-  button{
-    padding:12px 14px;border-radius:14px;
-    border:1px solid rgba(255,255,255,.14);
-    background:rgba(255,255,255,.06);
-    color:var(--text);
-    font-weight:900;
-    cursor:pointer;
-    transition:.2s;
-  }
-  button:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}
-  button.primary{
-    background:rgba(255,255,255,.92);
-    color:#000;border-color:transparent;
-  }
-  button.primary:hover{background:#fff}
-  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
-
-  .resultBox{
-    margin-top:12px;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:18px;
-    background:rgba(255,255,255,.02);
-    padding:14px;
-  }
-  .big{
-    font-size:22px;font-weight:1000;letter-spacing:.12em;
-  }
-  .small{color:var(--muted);font-size:13px;line-height:1.75;margin-top:8px}
-  .list{
-    margin-top:10px;max-height:220px;overflow:auto;
-    display:flex;flex-direction:column;gap:8px;
-  }
-  .row{
-    display:flex;justify-content:space-between;gap:10px;
-    padding:10px 12px;
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:14px;
-    background:rgba(0,0,0,.18);
-    color:rgba(255,255,255,.88);
-    font-size:13px;
-  }
-  .row span{color:var(--muted)}
-  .tag{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:7px 10px;border-radius:999px;
-    border:1px solid rgba(255,255,255,.12);
-    background:rgba(255,255,255,.02);
-    color:var(--muted);font-size:12px;
-  }
-  .tag b{color:rgba(255,255,255,.9)}
-  .note{
-    margin-top:10px;
-    font-size:12px;color:rgba(255,255,255,.65);
-  }
-</style>
-</head>
-
-<!-- WIN MODAL -->
-<div class="modal" id="winModal" aria-hidden="true">
-  <div class="modalCard" role="dialog" aria-modal="true">
-    <div class="modalGlow"></div>
-
-    <div class="modalTop">
-      <div class="badge" id="winBadge">🎉 <b>RARE</b></div>
-      <div class="closeX" id="winClose" title="Close">✕</div>
-    </div>
-
-    <div class="modalTitle" id="winTitle">Nice!</div>
-    <div class="modalCode" id="winCode">0000</div>
-    <div class="modalSub" id="winSub">
-      纯娱乐随机抽号。你可以复制号码或分享给朋友。
-    </div>
-
-    <div class="modalBtns">
-      <button class="mbtn primary" id="winCopy">Copy 号码</button>
-      <button class="mbtn" id="winShare">Share</button>
-      <button class="mbtn" id="winAgain">Draw Again</button>
-    </div>
-  </div>
-</div>
-
-<body>
-  <div class="wrap">
-    <div class="top">
-      <div class="brand">4 Number Draw</div>
-      <div class="nav">
-        <span class="dot"></span>
-        <a href="arcade.html">Arcade</a>
-        <a href="games.html">Mini Games</a>
-        <a href="shop.html">Store</a>
-      </div>
-    </div>
-
-    <h1>抽 4 个号码</h1>
-    <div class="sub">
-      纯娱乐：点击 <b style="color:var(--text)">Draw</b> 会用动画滚动并抽出 4 个数字（0000–9999）。
-      支持：锁定某些位数、保存历史、分享号码。
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <div class="stage" id="stage">
-          <div class="scan"></div>
-          <canvas id="fx"></canvas>
-
-          <div class="balls" aria-label="numbers">
-            <div class="ball" id="b1">0</div>
-            <div class="ball" id="b2">0</div>
-            <div class="ball" id="b3">0</div>
-            <div class="ball" id="b4">0</div>
-          </div>
-        </div>
-
-        <div class="hud">
-          <div class="pill">Mode: <b id="mode" style="color:var(--text)">Classic</b></div>
-          <div class="pill">Draws: <b id="draws" style="color:var(--text)">0</b></div>
-          <div class="pill">Best streak: <b id="best" style="color:var(--text)">0</b></div>
-          <div class="pill">Locked: <b id="locked" style="color:var(--text)">0</b>/4</div>
-        </div>
-
-        <div class="btnRow">
-          <button class="primary" id="drawBtn">Draw</button>
-          <button id="fastBtn">Turbo</button>
-          <button id="lockBtn">Lock/Unlock（点球锁定）</button>
-          <button id="copyBtn">Copy 号码</button>
-          <button id="resetBtn">Reset</button>
-        </div>
-
-        <div class="note">
-          ✅ 纯娱乐，无真钱、无下注、无中奖承诺。你可以把它当作“随机灵感/抽号小游戏”。
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="resultBox">
-          <div class="tag">当前号码：<b id="code">0000</b></div>
-          <div class="small">提示：你可以锁定某一位（点击球），再 Draw 只换其他位数。</div>
-
-          <div class="sep" style="height:1px;background:rgba(255,255,255,.10);margin:14px 0"></div>
-
-          <div class="tag">历史记录（本机保存）</div>
-          <div class="list" id="history"></div>
-        </div>
-      </div>
-    </div>
-  </div>
-/* ===== WIN MODAL ===== */
-.modal{
-  position:fixed; inset:0; z-index:99;
-  display:none; align-items:center; justify-content:center;
-  padding:18px;
-  background: rgba(0,0,0,.55);
-  backdrop-filter: blur(12px);
+:root{
+  --bg:#050507;
+  --text:#F6F7FB;
+  --gold:#FFD700;
+  --line:rgba(255,255,255,.12);
 }
-.modal.show{display:flex; animation: popIn .22s ease;}
-@keyframes popIn{
-  from{opacity:0; transform:translateY(8px) scale(.98)}
-  to{opacity:1; transform:none}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
+  color:var(--text);
+  background:radial-gradient(circle at 30% 20%, rgba(255,215,130,.15), transparent 60%), var(--bg);
+  overflow-x:hidden;
 }
-.modalCard{
-  width:min(560px, 92vw);
-  border-radius:22px;
-  border:1px solid rgba(255,255,255,.14);
-  background: linear-gradient(to bottom, rgba(255,255,255,.10), rgba(255,255,255,.03));
-  box-shadow: 0 30px 120px rgba(0,0,0,.65);
-  padding:16px;
-  position:relative;
-  overflow:hidden;
-}
-.modalGlow{
-  position:absolute; inset:-40%;
-  background: radial-gradient(circle at 30% 20%, rgba(255,215,130,.22), transparent 60%),
-              radial-gradient(circle at 70% 70%, rgba(180,120,255,.20), transparent 62%),
-              radial-gradient(circle at 50% 50%, rgba(120,200,255,.16), transparent 62%);
-  filter: blur(18px);
-  opacity:.9;
-  pointer-events:none;
-}
-.modalTop{
-  position:relative;
-  display:flex; justify-content:space-between; align-items:flex-start;
-  gap:12px;
-}
-.badge{
-  display:inline-flex; align-items:center; gap:10px;
-  padding:8px 10px; border-radius:999px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.04);
-  color: rgba(255,255,255,.88);
-  font-size:12px;
-}
-.badge b{letter-spacing:.18em}
-.modalTitle{
-  position:relative;
-  margin:10px 0 0;
-  font-size:26px;
-  font-weight:1000;
-}
-.modalCode{
-  position:relative;
-  margin-top:8px;
-  font-size:34px;
-  font-weight:1000;
-  letter-spacing:.22em;
-  background: linear-gradient(90deg, rgba(255,255,255,.95), rgba(255,215,130,.85), rgba(180,120,255,.80), rgba(120,200,255,.75));
+.wrap{max-width:900px;margin:auto;padding:30px 16px 100px}
+h1{
+  text-align:center;
+  font-size:52px;
+  background:linear-gradient(90deg,#fff,#FFD700,#FFB800);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
 }
-.modalSub{
-  position:relative;
-  margin-top:10px;
-  color: rgba(255,255,255,.70);
-  line-height:1.75;
-  font-size:13px;
+.stage{
+  margin-top:30px;
+  height:280px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:14px;
 }
-.modalBtns{
-  position:relative;
-  display:flex; gap:10px; flex-wrap:wrap;
-  margin-top:14px;
+.ball{
+  width:80px;height:80px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;font-weight:1000;
+  border:1px solid rgba(255,215,130,.5);
+  background:linear-gradient(180deg, rgba(255,255,255,.2), rgba(0,0,0,.4));
+  box-shadow:0 0 40px rgba(255,215,130,.3);
+  cursor:pointer;
+  transition:.2s;
 }
-.mbtn{
-  padding:12px 14px; border-radius:14px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
-  color: var(--text);
+.ball.lock{
+  border-color:#FFD700;
+  box-shadow:0 0 80px rgba(255,215,130,.6);
+}
+.controls{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+button{
+  padding:12px 16px;
+  border-radius:12px;
+  border:1px solid rgba(255,215,130,.5);
+  background:rgba(255,255,255,.08);
+  color:white;
   font-weight:900;
   cursor:pointer;
   transition:.2s;
 }
-.mbtn:hover{transform:translateY(-1px); background: rgba(255,255,255,.10)}
-.mbtn.primary{background: rgba(255,255,255,.92); color:#000; border-color:transparent}
-.mbtn.primary:hover{background:#fff}
-.closeX{
-  position:relative;
-  width:38px;height:38px;border-radius:12px;
-  border:1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.05);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;
+button:hover{
+  transform:translateY(-2px);
+  background:rgba(255,215,130,.2);
 }
-.closeX:hover{background: rgba(255,255,255,.10)}
+.primary{
+  background:#FFD700;
+  color:#000;
+  border:none;
+}
+.history{
+  margin-top:30px;
+  font-size:14px;
+  max-height:200px;
+  overflow:auto;
+}
+.history div{
+  padding:8px 0;
+  border-bottom:1px solid var(--line);
+}
+.modal{
+  position:fixed;inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.6);
+}
+.modal.show{display:flex}
+.modalBox{
+  background:rgba(0,0,0,.8);
+  border:1px solid #FFD700;
+  padding:20px;
+  border-radius:20px;
+  text-align:center;
+}
+.modalCode{
+  font-size:36px;
+  letter-spacing:.3em;
+  margin-top:10px;
+  color:#FFD700;
+}
+.jackpot{
+  position:fixed;
+  inset:0;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  font-size:90px;
+  font-weight:1000;
+  background:radial-gradient(circle,#FFD70055,transparent 60%);
+  color:#FFD700;
+  text-shadow:0 0 50px #FFD700;
+}
+.jackpot.show{display:flex;animation:flash .8s}
+@keyframes flash{
+  0%{opacity:0}
+  50%{opacity:1}
+  100%{opacity:0}
+}
+canvas{position:fixed;inset:0;pointer-events:none}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+<h1>🎰 4 Number Draw</h1>
+
+<div class="stage">
+  <div class="ball" id="b1">0</div>
+  <div class="ball" id="b2">0</div>
+  <div class="ball" id="b3">0</div>
+  <div class="ball" id="b4">0</div>
+</div>
+
+<div class="controls">
+  <button class="primary" onclick="draw()">Draw</button>
+  <button onclick="toggleTurbo()">Turbo</button>
+  <button onclick="copyCode()">Copy</button>
+  <button onclick="resetAll()">Reset</button>
+</div>
+
+<div class="history" id="history"></div>
+</div>
+
+<div class="modal" id="modal">
+  <div class="modalBox">
+    <div id="modalTitle">Result</div>
+    <div class="modalCode" id="modalCode">0000</div>
+    <div style="margin-top:15px">
+      <button onclick="shareCode()">Share</button>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="jackpot" id="jackpot">JACKPOT</div>
+<canvas id="confetti"></canvas>
 
 <script>
-  // ===== Elements
-  const balls = [b1,b2,b3,b4].map(id=>document.getElementById(id));
-  const codeEl = document.getElementById("code");
-  const drawsEl = document.getElementById("draws");
-  const bestEl  = document.getElementById("best");
-  const lockedEl= document.getElementById("locked");
-  const modeEl  = document.getElementById("mode");
-  const drawBtn = document.getElementById("drawBtn");
-  const fastBtn = document.getElementById("fastBtn");
-  const copyBtn = document.getElementById("copyBtn");
-  const resetBtn= document.getElementById("resetBtn");
-  const lockBtn = document.getElementById("lockBtn");
-  const histEl  = document.getElementById("history");
+const balls=[b1,b2,b3,b4];
+let turbo=false;
+let history=[];
+let locks=[false,false,false,false];
 
-  // ===== State (local)
-  const LS = {
-    history: "draw4_history",
-    draws: "draw4_draws",
-    best: "draw4_best",
-    turbo: "draw4_turbo",
-    locks: "draw4_locks"
-  };
-  let history = JSON.parse(localStorage.getItem(LS.history) || "[]");
-  let draws = Number(localStorage.getItem(LS.draws) || 0);
-  let best = Number(localStorage.getItem(LS.best) || 0);
-  let turbo = (localStorage.getItem(LS.turbo) || "0") === "1";
-  let locks = JSON.parse(localStorage.getItem(LS.locks) || "[false,false,false,false]");
-  let lockingEnabled = true; // click-to-lock enabled by default
-
-  // ===== Helpers
-  const pad = (n)=>String(n).padStart(4,"0");
-  const nowStr = ()=>{
-    const d = new Date();
-    const hh = String(d.getHours()).padStart(2,"0");
-    const mm = String(d.getMinutes()).padStart(2,"0");
-    const ss = String(d.getSeconds()).padStart(2,"0");
-    return `${hh}:${mm}:${ss}`;
-  };
-  function updateLocksUI(){
-    let cnt = locks.filter(Boolean).length;
-    lockedEl.textContent = cnt;
-    balls.forEach((b,i)=> b.classList.toggle("lock", !!locks[i]));
-    localStorage.setItem(LS.locks, JSON.stringify(locks));
-  }
-  function setCodeFromBalls(){
-    const code = balls.map(b=>b.textContent).join("");
-    codeEl.textContent = code;
-  }
-  function renderHistory(){
-    histEl.innerHTML = "";
-    if(history.length===0){
-      const empty = document.createElement("div");
-      empty.className = "row";
-      empty.innerHTML = `<div>暂无记录</div><span>Draw 一次就会出现</span>`;
-      histEl.appendChild(empty);
-      return;
-    }
-    history.slice(0,20).forEach(item=>{
-      const row = document.createElement("div");
-      row.className = "row";
-      row.innerHTML = `<div><b>${item.code}</b> <span>· ${item.mode}</span></div><span>${item.time}</span>`;
-      histEl.appendChild(row);
-    });
-  }
-  function saveAll(){
-    localStorage.setItem(LS.history, JSON.stringify(history));
-    localStorage.setItem(LS.draws, String(draws));
-    localStorage.setItem(LS.best, String(best));
-    localStorage.setItem(LS.turbo, turbo?"1":"0");
-  }
-
-  // ===== FX confetti
-  const canvas = document.getElementById("fx");
-  const stage = document.getElementById("stage");
-  const ctx = canvas.getContext("2d");
-  let W=0,H=0,dpr=1;
-  function resize(){
-    const r = stage.getBoundingClientRect();
-    dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
-    canvas.width = Math.floor(r.width*dpr);
-    canvas.height= Math.floor(r.height*dpr);
-    canvas.style.width = r.width+"px";
-    canvas.style.height= r.height+"px";
-    W=canvas.width; H=canvas.height;
-  }
-  window.addEventListener("resize", resize);
-  resize();
-
-  const conf = [];
-  function burst(intensity=60){
-    for(let i=0;i<intensity;i++){
-      conf.push({
-        x: W*0.5 + (Math.random()*80-40)*dpr,
-        y: H*0.35 + (Math.random()*40-20)*dpr,
-        vx:(Math.random()*2-1)*2.6*dpr,
-        vy:(Math.random()*-1.8-0.6)*3.2*dpr,
-        g: 0.12*dpr,
-        s: (Math.random()*3+2.2)*dpr,
-        a: 1,
-        hue: Math.random()<0.34 ? 45 : (Math.random()<0.5 ? 270 : 200)
-      });
-    }
-  }
-  function fxTick(){
-    ctx.clearRect(0,0,W,H);
-    for(let i=conf.length-1;i>=0;i--){
-      const p = conf[i];
-      p.vy += p.g;
-      p.x += p.vx;
-      p.y += p.vy;
-      p.a *= 0.985;
-      ctx.fillStyle = `hsla(${p.hue},90%,70%,${p.a})`;
-      ctx.fillRect(p.x, p.y, p.s, p.s*0.55);
-      if(p.a < 0.06 || p.y>H+60) conf.splice(i,1);
-    }
-    requestAnimationFrame(fxTick);
-  }
-  fxTick();
-
-  // ===== Sound (optional simple beep)
-  let soundOn = true;
-  let AC=null;
-  function beep(freq=760, dur=0.06){
-    if(!soundOn) return;
-    try{
-      AC = AC || new (window.AudioContext||window.webkitAudioContext)();
-      const o=AC.createOscillator(), g=AC.createGain();
-      o.type="sine"; o.frequency.value=freq;
-      g.gain.value=0.045;
-      o.connect(g); g.connect(AC.destination);
-      o.start(); setTimeout(()=>o.stop(), dur*1000);
-    }catch(e){}
-  }
-
-  // ===== Rolling logic
-  let rolling=false;
-  function randomDigit(){ return Math.floor(Math.random()*10); }
-
-  function startRoll(){
-    rolling=true;
-    drawBtn.disabled = true;
-    fastBtn.disabled = true;
-    copyBtn.disabled = true;
-
-    balls.forEach((b,i)=>{
-      if(!locks[i]) b.classList.add("rolling");
-    });
-  }
-
-  function stopRoll(finalDigits){
-    balls.forEach((b,i)=>{
-      b.classList.remove("rolling");
-      if(!locks[i]) b.textContent = String(finalDigits[i]);
-    });
-    setCodeFromBalls();
-    rolling=false;
-
-    drawBtn.disabled = false;
-    fastBtn.disabled = false;
-    copyBtn.disabled = false;
-  }
-
-  // “rarity” just for fun visual: more repeated digits = rarer
-  function rarity(code){
-    const counts = {};
-    for(const ch of code) counts[ch]=(counts[ch]||0)+1;
-    const max = Math.max(...Object.values(counts));
-    if(max===4) return "ULTRA (四连)";
-    if(max===3) return "EPIC (三连)";
-    if(max===2) return "RARE (对子)";
-    return "COMMON";
-  }
-
-  async function draw(){
-    if(rolling) return;
-
-    const lockedCount = locks.filter(Boolean).length;
-    lockedEl.textContent = lockedCount;
-
-    modeEl.textContent = turbo ? "Turbo" : "Classic";
-
-    startRoll();
-
-    // rolling frames
-    const rollMs = turbo ? 650 : 1300;
-    const intervalMs = turbo ? 45 : 70;
-    const start = performance.now();
-
-    // temp digits (for animation)
-    const timer = setInterval(()=>{
-      balls.forEach((b,i)=>{
-        if(!locks[i]) b.textContent = String(randomDigit());
-      });
-      setCodeFromBalls();
-      beep(turbo ? 980 : 760, 0.035);
-    }, intervalMs);
-
-    // wait
-    while(performance.now() - start < rollMs){
-      await new Promise(r=>setTimeout(r, 20));
-    }
-    clearInterval(timer);
-
-    // final digits
-    const finalDigits = balls.map((b,i)=> locks[i] ? Number(b.textContent) : randomDigit());
-    stopRoll(finalDigits);
-
-    const code = balls.map(b=>b.textContent).join("");
-    const r = rarity(code);
-
-    // stats
-    draws += 1;
-    drawsEl.textContent = draws;
-
-    // best: count streak of same rarity or just best length? We'll use max consecutive draws without reset
-    if(draws > best) { best = draws; bestEl.textContent = best; }
-
-    // history (keep last 50)
-    history.unshift({ code, time: nowStr(), mode: turbo ? "Turbo" : "Classic", rarity: r });
-    history = history.slice(0,50);
-    renderHistory();
-    saveAll();
-
-    // celebration: if rare or above -> more confetti
-    if(r !== "COMMON"){
-      burst(r==="RARE" ? 90 : (r==="EPIC (三连)" ? 130 : 180));
-    } else {
-      burst(40);
-    }
-  }
-
-  // ===== UI events
-  balls.forEach((b,i)=>{
-    b.addEventListener("click", ()=>{
-      if(!lockingEnabled) return;
-      locks[i] = !locks[i];
-      updateLocksUI();
-    });
+balls.forEach((b,i)=>{
+  b.addEventListener("click",()=>{
+    locks[i]=!locks[i];
+    b.classList.toggle("lock",locks[i]);
   });
+});
 
-  drawBtn.addEventListener("click", draw);
+function randomDigit(){return Math.floor(Math.random()*10);}
 
-  fastBtn.addEventListener("click", ()=>{
-    turbo = !turbo;
-    localStorage.setItem(LS.turbo, turbo?"1":"0");
-    modeEl.textContent = turbo ? "Turbo" : "Classic";
-    fastBtn.textContent = turbo ? "Turbo: ON" : "Turbo";
-    beep(turbo?1200:600,0.06);
-  });
-
-  lockBtn.addEventListener("click", ()=>{
-    lockingEnabled = !lockingEnabled;
-    lockBtn.textContent = lockingEnabled ? "Lock/Unlock（点球锁定）" : "Lock Disabled";
-    beep(lockingEnabled?900:500,0.06);
-  });
-
-  copyBtn.addEventListener("click", async ()=>{
-    const code = balls.map(b=>b.textContent).join("");
-    try{
-      await navigator.clipboard.writeText(code);
-      copyBtn.textContent = "Copied!";
-      beep(1200,0.05);
-      setTimeout(()=>copyBtn.textContent="Copy 号码", 900);
-    }catch(e){
-      alert("复制失败：请手动复制 " + code);
-    }
-  });
-
-  resetBtn.addEventListener("click", ()=>{
-    locks = [false,false,false,false];
-    updateLocksUI();
-    balls.forEach(b=>b.textContent="0");
-    setCodeFromBalls();
-    draws = 0; drawsEl.textContent = draws;
-    best = 0; bestEl.textContent = best;
-    history = [];
-    renderHistory();
-    saveAll();
-    burst(70);
-  });
-
-  // Init
-  drawsEl.textContent = draws;
-  bestEl.textContent = best;
-  modeEl.textContent = turbo ? "Turbo" : "Classic";
-  fastBtn.textContent = turbo ? "Turbo: ON" : "Turbo";
-  updateLocksUI();
-  setCodeFromBalls();
+async function draw(){
+  let duration=turbo?600:1200;
+  let start=Date.now();
+  while(Date.now()-start<duration){
+    balls.forEach((b,i)=>{if(!locks[i])b.textContent=randomDigit();});
+    await new Promise(r=>setTimeout(r,50));
+  }
+  let code=balls.map(b=>b.textContent).join("");
+  showResult(code);
+  history.unshift(code);
   renderHistory();
+  checkJackpot(code);
+}
+
+function showResult(code){
+  modalCode.textContent=code;
+  modal.classList.add("show");
+}
+
+function closeModal(){modal.classList.remove("show");}
+
+function copyCode(){
+  navigator.clipboard.writeText(balls.map(b=>b.textContent).join(""));
+}
+
+function toggleTurbo(){turbo=!turbo;}
+
+function resetAll(){
+  balls.forEach(b=>b.textContent="0");
+  history=[];
+  renderHistory();
+}
+
+function renderHistory(){
+  historyEl=history.map(h=>"<div>"+h+"</div>").join("");
+  historyDiv=document.getElementById("history");
+  historyDiv.innerHTML=historyEl;
+}
+
+function shareCode(){
+  let code=modalCode.textContent;
+  let text="我刚抽到号码："+code+" 🎰";
+  if(navigator.share){
+    navigator.share({title:"4 Draw",text});
+  }else{
+    navigator.clipboard.writeText(text);
+  }
+}
+
+function checkJackpot(code){
+  if(/(\d)\1\1\1/.test(code)){
+    jackpot.classList.add("show");
+    burst();
+    setTimeout(()=>jackpot.classList.remove("show"),800);
+  }
+}
+
+/* Confetti */
+const canvas=document.getElementById("confetti");
+const ctx=canvas.getContext("2d");
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+let pieces=[];
+function burst(){
+  for(let i=0;i<200;i++){
+    pieces.push({
+      x:canvas.width/2,
+      y:canvas.height/2,
+      vx:(Math.random()-0.5)*10,
+      vy:(Math.random()-0.5)*10,
+      size:Math.random()*5+2
+    });
+  }
+}
+function animate(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  pieces.forEach(p=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.vy+=0.2;
+    ctx.fillStyle="#FFD700";
+    ctx.fillRect(p.x,p.y,p.size,p.size);
+  });
+  requestAnimationFrame(animate);
+}
+animate();
 </script>
+
 </body>
 </html>
