@@ -199,6 +199,30 @@
 </style>
 </head>
 
+<!-- WIN MODAL -->
+<div class="modal" id="winModal" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true">
+    <div class="modalGlow"></div>
+
+    <div class="modalTop">
+      <div class="badge" id="winBadge">🎉 <b>RARE</b></div>
+      <div class="closeX" id="winClose" title="Close">✕</div>
+    </div>
+
+    <div class="modalTitle" id="winTitle">Nice!</div>
+    <div class="modalCode" id="winCode">0000</div>
+    <div class="modalSub" id="winSub">
+      纯娱乐随机抽号。你可以复制号码或分享给朋友。
+    </div>
+
+    <div class="modalBtns">
+      <button class="mbtn primary" id="winCopy">Copy 号码</button>
+      <button class="mbtn" id="winShare">Share</button>
+      <button class="mbtn" id="winAgain">Draw Again</button>
+    </div>
+  </div>
+</div>
+
 <body>
   <div class="wrap">
     <div class="top">
@@ -264,6 +288,101 @@
       </div>
     </div>
   </div>
+/* ===== WIN MODAL ===== */
+.modal{
+  position:fixed; inset:0; z-index:99;
+  display:none; align-items:center; justify-content:center;
+  padding:18px;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(12px);
+}
+.modal.show{display:flex; animation: popIn .22s ease;}
+@keyframes popIn{
+  from{opacity:0; transform:translateY(8px) scale(.98)}
+  to{opacity:1; transform:none}
+}
+.modalCard{
+  width:min(560px, 92vw);
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.14);
+  background: linear-gradient(to bottom, rgba(255,255,255,.10), rgba(255,255,255,.03));
+  box-shadow: 0 30px 120px rgba(0,0,0,.65);
+  padding:16px;
+  position:relative;
+  overflow:hidden;
+}
+.modalGlow{
+  position:absolute; inset:-40%;
+  background: radial-gradient(circle at 30% 20%, rgba(255,215,130,.22), transparent 60%),
+              radial-gradient(circle at 70% 70%, rgba(180,120,255,.20), transparent 62%),
+              radial-gradient(circle at 50% 50%, rgba(120,200,255,.16), transparent 62%);
+  filter: blur(18px);
+  opacity:.9;
+  pointer-events:none;
+}
+.modalTop{
+  position:relative;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  gap:12px;
+}
+.badge{
+  display:inline-flex; align-items:center; gap:10px;
+  padding:8px 10px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.88);
+  font-size:12px;
+}
+.badge b{letter-spacing:.18em}
+.modalTitle{
+  position:relative;
+  margin:10px 0 0;
+  font-size:26px;
+  font-weight:1000;
+}
+.modalCode{
+  position:relative;
+  margin-top:8px;
+  font-size:34px;
+  font-weight:1000;
+  letter-spacing:.22em;
+  background: linear-gradient(90deg, rgba(255,255,255,.95), rgba(255,215,130,.85), rgba(180,120,255,.80), rgba(120,200,255,.75));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.modalSub{
+  position:relative;
+  margin-top:10px;
+  color: rgba(255,255,255,.70);
+  line-height:1.75;
+  font-size:13px;
+}
+.modalBtns{
+  position:relative;
+  display:flex; gap:10px; flex-wrap:wrap;
+  margin-top:14px;
+}
+.mbtn{
+  padding:12px 14px; border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  font-weight:900;
+  cursor:pointer;
+  transition:.2s;
+}
+.mbtn:hover{transform:translateY(-1px); background: rgba(255,255,255,.10)}
+.mbtn.primary{background: rgba(255,255,255,.92); color:#000; border-color:transparent}
+.mbtn.primary:hover{background:#fff}
+.closeX{
+  position:relative;
+  width:38px;height:38px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.closeX:hover{background: rgba(255,255,255,.10)}
 
 <script>
   // ===== Elements
