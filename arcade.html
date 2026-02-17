@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Jkang Arcade</title>
+
+<style>
+:root{
+--bg:#050507;
+--text:#F6F7FB;
+--muted:#A7AAB5;
+--line:rgba(255,255,255,.12);
+--card:rgba(255,255,255,.05);
+--radius:22px;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
+background:
+radial-gradient(900px 500px at 50% 0%, rgba(255,255,255,.10), transparent 60%),
+radial-gradient(700px 420px at 90% 80%, rgba(180,120,255,.15), transparent 60%),
+var(--bg);
+color:var(--text);
+}
+
+.wrap{
+max-width:1100px;
+margin:auto;
+padding:30px 18px 80px;
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:12px 0;
+border-bottom:1px solid var(--line);
+}
+
+.brand{
+font-weight:900;
+letter-spacing:.25em;
+text-transform:uppercase;
+font-size:13px;
+}
+
+.nav a{
+color:var(--muted);
+margin-left:14px;
+text-decoration:none;
+font-size:13px;
+}
+
+.nav a:hover{color:white}
+
+.hero{
+text-align:center;
+padding:60px 0 30px;
+}
+
+.hero h1{
+font-size:60px;
+margin:0;
+letter-spacing:.04em;
+}
+
+.hero p{
+color:var(--muted);
+margin-top:12px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr;
+gap:18px;
+margin-top:30px;
+}
+
+@media(min-width:900px){
+.grid{grid-template-columns:1fr 1fr}
+}
+
+.card{
+border:1px solid var(--line);
+border-radius:var(--radius);
+padding:22px;
+background:linear-gradient(to bottom, rgba(255,255,255,.06), rgba(255,255,255,.02));
+transition:.25s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+background:rgba(255,255,255,.08);
+}
+
+.card h2{
+margin:0 0 8px;
+}
+
+.card p{
+color:var(--muted);
+font-size:14px;
+line-height:1.7;
+}
+
+.btn{
+display:inline-block;
+margin-top:14px;
+padding:12px 18px;
+border-radius:14px;
+border:1px solid var(--line);
+background:rgba(255,255,255,.06);
+text-decoration:none;
+color:white;
+font-weight:800;
+}
+
+.btn:hover{
+background:white;
+color:black;
+}
+
+.section{
+margin-top:60px;
+}
+
+.section h3{
+letter-spacing:.2em;
+font-size:13px;
+color:var(--muted);
+text-transform:uppercase;
+}
+
+footer{
+margin-top:80px;
+color:var(--muted);
+font-size:12px;
+text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<div class="top">
+<div class="brand">JKANG ARCADE</div>
+<div class="nav">
+<a href="index.html">Home</a>
+<a href="shop.html">Store</a>
+<a href="games.html">Mini Games</a>
+</div>
+</div>
+
+<div class="hero">
+<h1>Arcade</h1>
+<p>Pure digital dopamine. Play. Win. Repeat.</p>
+</div>
+
+<div class="grid">
+
+<div class="card">
+<h2>🎁 Loot Box</h2>
+<p>开箱机制 + 稀有度 + 保底系统。极度上头。</p>
+<a class="btn" href="game-lootbox.html">Play Now</a>
+</div>
+
+<div class="card">
+<h2>🎡 Spin Wheel</h2>
+<p>幸运转盘抽奖，连抽记录最佳。</p>
+<a class="btn" href="game-wheel.html">Play Now</a>
+</div>
+
+<div class="card">
+<h2>⚡ Tap Rush</h2>
+<p>10 秒点击挑战，冲击最高分。</p>
+<a class="btn" href="game-tap.html">Play Now</a>
+</div>
+
+<div class="card">
+<h2>🧩 2048</h2>
+<p>经典合并小游戏，手机也能玩。</p>
+<a class="btn" href="game-2048.html">Play Now</a>
+</div>
+
+</div>
+
+<div class="section">
+<h3>Leaderboard (Local)</h3>
+<p style="color:var(--muted)">
+当前排行榜基于本地浏览器记录。<br>
+后续可升级为全球排行榜系统。
+</p>
+</div>
+
+<footer>
+© 2025 Jkang Arcade
+</footer>
+
+</div>
+
+</body>
+</html>
