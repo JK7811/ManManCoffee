@@ -194,7 +194,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_6P96zfQTL9QAmChrKKnXaQ_...";
       location.href = j.url;
     }
 
-    $("otpBtn").onclick = sendOtp;
+    $("otpBtn").onclick = () => { alert("clicked"); sendOtp(); };
     $("demoBtn").onclick = () => startGame(false);
     $("logoutBtn").onclick = logout;
     $("topupBtn").onclick = topup;
