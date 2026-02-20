@@ -1,12 +1,217 @@
 <!doctype html>
-<html>
+<html lang="zh-Hans">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>JKang</title>
-  <meta http-equiv="refresh" content="0; url=/legacy/index.html" />
+  <title>JKang Arcade</title>
+  <meta name="description" content="JKang Arcade · Entertainment · Play Responsibly · No cash-out" />
+  <style>
+    :root{
+      --bg:#050507;
+      --text:#F6F7FB;
+      --muted:#A7AAB5;
+      --line:rgba(255,255,255,.12);
+      --gold:#FFD700;
+      --radius:22px;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.02);
+      --shadow: 0 26px 80px rgba(0,0,0,.55);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(900px 520px at 20% 30%, rgba(255,215,130,.16), transparent 60%),
+        radial-gradient(900px 520px at 80% 70%, rgba(120,200,255,.14), transparent 60%),
+        radial-gradient(780px 480px at 65% 20%, rgba(180,120,255,.14), transparent 60%),
+        var(--bg);
+      overflow-x:hidden;
+    }
+    a{color:inherit;text-decoration:none}
+    canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:18px 14px 80px}
+    .nav{
+      position:sticky;top:0;z-index:10;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:12px 0;
+      border-bottom:1px solid var(--line);
+      backdrop-filter:blur(14px);
+      background:linear-gradient(to bottom, rgba(5,5,7,.88), rgba(5,5,7,.35));
+    }
+    .brand{font-weight:1000;letter-spacing:.22em;text-transform:uppercase;font-size:13px}
+    .links{display:flex;gap:10px;color:var(--muted);font-size:13px;align-items:center;flex-wrap:wrap}
+    .links a{padding:8px 10px;border-radius:999px;border:1px solid transparent;transition:.2s}
+    .links a:hover{border-color:var(--line);color:var(--text);transform:translateY(-1px)}
+    .h1{
+      font-size:56px;margin:18px 0 10px;letter-spacing:.04em;line-height:1.05;
+      background:linear-gradient(90deg,#fff,#FFD700,#FFB800,#B478FF,#7CC8FF);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      text-shadow: 0 0 30px rgba(255,215,130,.12);
+    }
+    .sub{color:var(--muted);line-height:1.8;font-size:14px;max-width:820px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      padding:12px 14px;border-radius:14px;border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      cursor:pointer;font-weight:900;transition:.2s;
+      box-shadow:0 12px 34px rgba(0,0,0,.35);
+    }
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.10)}
+    .primary{background:rgba(255,255,255,.92);color:#000;border-color:transparent}
+    .primary:hover{background:#fff}
+    .card{
+      margin-top:16px;
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:linear-gradient(to bottom, var(--card), var(--card2));
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .cardIn{padding:16px}
+    .badge{
+      display:inline-flex;gap:8px;align-items:center;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.03);
+      color:rgba(255,255,255,.88);
+      font-size:12px;
+    }
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+    @media(min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    .tile{
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:rgba(255,255,255,.04);
+      padding:14px;
+      transition:.2s;
+      position:relative;
+      overflow:hidden;
+    }
+    .tile:hover{transform:translateY(-2px);background:rgba(255,255,255,.07)}
+    .tile:before{
+      content:"";
+      position:absolute;inset:-2px;
+      background:radial-gradient(220px 120px at var(--mx,50%) var(--my,50%),
+        rgba(255,215,130,.22), rgba(180,120,255,.14), transparent 60%);
+      opacity:.0;transition:.2s;
+      pointer-events:none;
+    }
+    .tile:hover:before{opacity:1}
+    .tTitle{font-weight:1000;font-size:16px}
+    .tSub{color:var(--muted);font-size:13px;line-height:1.7;margin-top:6px}
+    footer{margin-top:18px;color:var(--muted);font-size:12px;display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
+  </style>
 </head>
-<body style="font-family:Arial;background:#050507;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
-  Redirecting… <a style="color:#FFD700;margin-left:8px" href="/legacy/index.html">Click here</a>
+<body>
+  <canvas id="fx"></canvas>
+
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">JKANG ARCADE</div>
+      <div class="links">
+        <a href="/games.html">Games</a>
+        <a href="/arcade.html">Arcade (Old)</a>
+        <a href="/legacy/index.html">Legacy</a>
+      </div>
+    </div>
+
+    <div class="h1">娱乐城 · 娱乐平台</div>
+    <div class="sub">
+      这里是线上娱乐游戏中心：<b style="color:#fff">免费点数（B）</b> + <b style="color:#fff">充值购买点数（A）</b>（无提现）。<br>
+      内置理性消费：每日上限 / 冷静提醒 / 透明记录。所有游戏为娱乐用途，不与现金奖金挂钩。
+    </div>
+
+    <div class="row">
+      <a class="btn primary" href="/games.html">🎮 Enter Games</a>
+      <a class="btn" href="/legacy/game-4d.html">🎰 Play 4D (Legacy)</a>
+      <a class="btn" href="/legacy/index.html">📦 Legacy Site</a>
+    </div>
+
+    <div class="card">
+      <div class="cardIn">
+        <span class="badge">✅ Play responsibly</span>
+        <span class="badge" style="margin-left:8px">✅ No cash-out</span>
+        <span class="badge" style="margin-left:8px">✅ Transparent logs (coming)</span>
+
+        <div class="grid">
+          <a class="tile" href="/legacy/game-wheel.html">
+            <div class="tTitle">🎡 Lucky Wheel</div>
+            <div class="tSub">彩色转盘 + 动画效果（旧版先接入，后续升级点数系统）</div>
+          </a>
+          <a class="tile" href="/legacy/game-lootbox.html">
+            <div class="tTitle">🎁 Lootbox</div>
+            <div class="tSub">开箱体验 + 特效（旧版先接入，后续升级成后台可控）</div>
+          </a>
+          <a class="tile" href="/legacy/game-2048.html">
+            <div class="tTitle">🧩 2048</div>
+            <div class="tSub">经典小游戏（入口统一到娱乐城大厅）</div>
+          </a>
+          <a class="tile" href="/legacy/game-tap.html">
+            <div class="tTitle">⚡ Tap Challenge</div>
+            <div class="tSub">点击挑战（后续加入每日任务/排行榜）</div>
+          </a>
+        </div>
+
+        <footer>
+          <div>© <span id="y"></span> JKang</div>
+          <div>Arcade Concept v2 · Supabase backend coming</div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    // hover glow position
+    window.addEventListener("mousemove",(e)=>{
+      document.documentElement.style.setProperty("--mx", e.clientX+"px");
+      document.documentElement.style.setProperty("--my", e.clientY+"px");
+    }, {passive:true});
+
+    // colorful floating particles
+    const c = document.getElementById("fx");
+    const ctx = c.getContext("2d");
+    let w,h,dpr;
+    function resize(){
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+      w = c.width = Math.floor(innerWidth*dpr);
+      h = c.height= Math.floor(innerHeight*dpr);
+      c.style.width = innerWidth+"px";
+      c.style.height= innerHeight+"px";
+    }
+    resize(); addEventListener("resize", resize);
+
+    const N = Math.floor(Math.min(180, Math.max(110, innerWidth/8)));
+    const pts = Array.from({length:N}).map(()=>({
+      x:Math.random()*w, y:Math.random()*h,
+      vx:(Math.random()*2-1)*0.22*dpr,
+      vy:(Math.random()*2-1)*0.16*dpr,
+      r:(Math.random()*2.0+0.8)*dpr,
+      h: Math.random()<0.33?45:(Math.random()<0.5?270:200),
+      a: Math.random()*0.7+0.15
+    }));
+
+    function tick(){
+      ctx.clearRect(0,0,w,h);
+      for(let i=0;i<pts.length;i++){
+        const p=pts[i];
+        p.x+=p.vx; p.y+=p.vy;
+        if(p.x<-60)p.x=w+60; if(p.x>w+60)p.x=-60;
+        if(p.y<-60)p.y=h+60; if(p.y>h+60)p.y=-60;
+
+        ctx.beginPath();
+        ctx.fillStyle = `hsla(${p.h},90%,70%,${p.a*0.22})`;
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+        ctx.fill();
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+  </script>
 </body>
 </html>
