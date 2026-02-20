@@ -1,27 +1,84 @@
-async function sendOtp(){
-  try{
-    const email = S("email").value.trim();
-    if(!email){ S("loginMsg").textContent="请输入邮箱"; alert("请输入邮箱"); return; }
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JKang Game - Login</title>
+  <style>
+    body{margin:0;font-family:Arial,sans-serif;background:#0b0b12;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center}
+    .card{width:min(520px,92vw);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:18px;box-shadow:0 25px 70px rgba(0,0,0,.55)}
+    h1{margin:0 0 8px;font-size:22px;letter-spacing:.08em}
+    p{margin:0 0 14px;color:rgba(255,255,255,.7);line-height:1.6}
+    input{width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.25);color:#fff;outline:none}
+    button{margin-top:12px;width:100%;padding:12px 12px;border-radius:12px;border:0;background:#fff;color:#000;font-weight:800;cursor:pointer}
+    button:active{transform:scale(.99)}
+    .msg{margin-top:10px;font-size:13px;color:rgba(255,255,255,.85);white-space:pre-wrap}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.75);font-size:12px;margin-bottom:10px}
+    .small{margin-top:10px;color:rgba(255,255,255,.55);font-size:12px}
+    a{color:#9ad0ff}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="tag">Step 1 · Email OTP Login</div>
+    <h1>LOGIN → ENTER GAME</h1>
+    <p>输入邮箱，点击发送登录链接。成功后 Supabase Users 会出现你的邮箱。</p>
+    <input id="email" type="email" placeholder="you@example.com" />
+    <button id="otpBtn">Send Login Link</button>
+    <div class="msg" id="msg"></div>
+    <div class="small" id="debug"></div>
+  </div>
 
-    S("loginMsg").textContent="Sending OTP...";
-    const { data, error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: "https://jkang.vercel.app"
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // 1) 填你的 Supabase
+    const SUPABASE_URL = "https://zrulbxnqtliyxycfjgks.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_4kcgAmTjO0pFPCxqyZ-1gw_vOuUx8SP";
+
+    const $ = (id)=>document.getElementById(id);
+    const show = (t)=>{ $("msg").textContent = t; };
+    const dbg  = (t)=>{ $("debug").textContent = t; };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      // 确认 JS 一定跑
+      dbg("JS loaded ✅");
+
+      // 创建 client
+      let supabase;
+      try{
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }catch(e){
+        show("❌ Supabase 初始化失败：\n" + (e?.message || e));
+        return;
       }
+
+      $("otpBtn").addEventListener("click", async () => {
+        try{
+          const email = $("email").value.trim();
+          if(!email){ show("请输入邮箱"); alert("请输入邮箱"); return; }
+
+          show("Sending...");
+          const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              emailRedirectTo: window.location.origin
+            }
+          });
+
+          if(error){
+            show("❌ 发送失败：\n" + error.message);
+            alert("发送失败：" + error.message);
+            return;
+          }
+
+          show("✅ 已发送登录邮件。\n去邮箱点击链接完成登录。");
+          alert("已发送登录邮件，请查收邮箱");
+        }catch(e){
+          show("❌ JS 异常：\n" + (e?.message || e));
+          alert("JS 异常：" + (e?.message || e));
+        }
+      });
     });
-
-    if(error){
-      S("loginMsg").textContent = "错误: " + error.message;
-      alert("错误: " + error.message);
-      return;
-    }
-
-    S("loginMsg").textContent="已发送登录邮件，去邮箱点击链接即可进入。";
-    alert("已发送登录邮件，请查收邮箱");
-  }catch(e){
-    const msg = (e && e.message) ? e.message : String(e);
-    S("loginMsg").textContent = "JS 异常: " + msg;
-    alert("JS 异常: " + msg);
-  }
-}
+  </script>
+</body>
+</html>
