@@ -164,14 +164,34 @@ const SUPABASE_ANON_KEY = "sb_publishable_6P96zfQTL9QAmChrKKnXaQ_...";
       $("coins").textContent = walletCoins.toLocaleString();
     }
 
-    async function sendOtp(){
-      const email = $("email").value.trim();
-      if(!email){ $("loginMsg").textContent="请输入邮箱"; return; }
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if(error){ $("loginMsg").textContent="错误："+error.message; return; }
-      $("loginMsg").textContent="已发送 OTP 登录链接到邮箱。打开邮箱点击即可进入游戏。";
+async function sendOtp(){
+  try{
+    const email = S("email").value.trim();
+    if(!email){ S("loginMsg").textContent="请输入邮箱"; alert("请输入邮箱"); return; }
+
+    S("loginMsg").textContent="Sending OTP...";
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: "https://jkang.vercel.app"
+      }
+    });
+
+    if(error){
+      S("loginMsg").textContent = "错误: " + error.message;
+      alert("错误: " + error.message);
+      return;
     }
 
+    S("loginMsg").textContent="已发送登录邮件，去邮箱点击链接即可进入。";
+    alert("已发送登录邮件，请查收邮箱");
+  }catch(e){
+    const msg = (e && e.message) ? e.message : String(e);
+    S("loginMsg").textContent = "JS 异常: " + msg;
+    alert("JS 异常: " + msg);
+  }
+}
+    
     async function logout(){
       await supabase.auth.signOut();
       walletCoins = 0;
