@@ -372,7 +372,7 @@
 
     async function initSupabase(){
       // hard guard: if user forgot to paste keys -> show clear message
-      if(!SUPABASE_URL.includes("supabase.co") || SUPABASE_ANON_KEY.includes("PASTE_")){
+      if(!SUPABASE_URL.includes("supabase.co") || SUPABASE_ANON_KEY.includes("sb_publishable_4kcgAmTjO0pFPCxqyZ-1gw_vOuUx8SP")){
         $("loginMsg").textContent =
           "⚠️ 你还没把 Supabase URL / Key 填进 index.html。\n" +
           "回 GitHub 编辑 index.html，把两行粘贴进去再刷新。";
