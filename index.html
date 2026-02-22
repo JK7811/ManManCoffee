@@ -1,153 +1,338 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="zh-Hans">
 <head>
-<meta charset="UTF-8">
-<title>JKang Market FINAL</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<style>
-body{font-family:Arial;background:#0f172a;color:#fff;padding:20px}
-button{padding:10px;margin:5px;border-radius:6px;border:none;cursor:pointer}
-.primary{background:#fff;color:#000}
-.card{background:#1e293b;padding:15px;border-radius:10px;margin-top:20px}
-input{padding:10px;width:100%;margin-top:10px;border-radius:6px;border:none}
-#log{background:#000;padding:10px;margin-top:10px;height:150px;overflow:auto;font-size:12px}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>JKang Market · Ultimate</title>
+  <style>
+    :root{--bg:#070b18;--card:#0f1735;--card2:#0b122a;--text:#fff;--muted:rgba(255,255,255,.65);--line:rgba(255,255,255,.12)}
+    *{box-sizing:border-box}
+    body{
+      margin:0;background:radial-gradient(900px 520px at 40% 0%, rgba(124,200,255,.18), transparent 60%),
+      radial-gradient(900px 520px at 80% 80%, rgba(180,120,255,.16), transparent 60%),var(--bg);
+      color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
+    h1{margin:8px 0 14px;font-size:34px;letter-spacing:.02em}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:860px){.grid{grid-template-columns:1fr 1fr}}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      border:1px solid var(--line);border-radius:18px;padding:14px;
+      box-shadow:0 24px 80px rgba(0,0,0,.45);
+    }
+    .label{font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.78);font-size:12px}
+    .muted{color:var(--muted);font-size:13px;line-height:1.6}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;align-items:center}
+    input{
+      width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(0,0,0,.25);color:var(--text);outline:none;
+    }
+    button{
+      padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+      background:rgba(255,255,255,.10);color:var(--text);font-weight:900;cursor:pointer;
+      user-select:none;
+      touch-action: manipulation; /* iOS */
+    }
+    button.primary{background:#fff;color:#000;border-color:transparent}
+    button:active{transform:translateY(1px)}
+    .log{
+      margin-top:10px;background:rgba(0,0,0,.35);border:1px solid var(--line);
+      border-radius:14px;padding:10px;min-height:140px;white-space:pre-wrap;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      font-size:12px;color:rgba(255,255,255,.86)
+    }
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(0,0,0,.18);font-size:12px;color:rgba(255,255,255,.8)}
+    .prod{border:1px solid var(--line);border-radius:14px;padding:10px;background:rgba(0,0,0,.22);margin-top:10px}
+    .prod b{display:block;font-size:14px}
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>JKang Market · 终极稳定版</h1>
+    <div class="muted">
+      目标：像淘宝/Shopee 一样：<span class="pill">卖家开店</span> <span class="pill">上架商品</span> <span class="pill">买家下单</span><br/>
+      说明：这版先做“下单记录”，真实收款用 Stripe 第 2 阶段接入。
+    </div>
 
-<h2>JKang Market FINAL ✅ v-2026-02-22-01</h2>
+    <div class="grid" style="margin-top:14px">
+      <div class="card">
+        <div class="label">Step 1 · 按钮 & 网络自检</div>
+        <div class="muted" id="origin">origin: -</div>
+        <div class="row">
+          <button id="btnAlert">点我（必须弹窗）</button>
+          <button class="primary" id="btnPing">Ping Supabase</button>
+          <button id="btnHardReload">Force Reload</button>
+        </div>
+        <div class="muted" id="net">network: -</div>
+      </div>
 
-<div class="card">
-<button id="btnTest" class="primary">点我测试</button>
-<button id="btnPing">Ping Supabase</button>
-<div id="origin"></div>
-</div>
+      <div class="card">
+        <div class="label">Step 2 · Email 登录（Magic Link）</div>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        <div class="row">
+          <button class="primary" id="btnSend">Send Login Link</button>
+          <button id="btnLogout">Logout（强制清缓存）</button>
+        </div>
+        <div class="muted">Auth: <b id="authState">-</b> · User: <b id="userState">-</b></div>
+      </div>
 
-<div class="card">
-<input id="email" placeholder="输入邮箱登录">
-<button id="btnLogin" class="primary">Send Magic Link</button>
-<button id="btnLogout">Logout</button>
-<div id="auth"></div>
-</div>
+      <div class="card">
+        <div class="label">Step 3 · 卖家/商品（登录后可用）</div>
+        <div class="row">
+          <button id="btnBecomeSeller">Become Seller（创建店铺）</button>
+          <button id="btnAddProduct">Add Product（上架测试商品）</button>
+          <button class="primary" id="btnLoadProducts">Load Products（所有商品）</button>
+          <button id="btnBuyFirst">Buy First Product（下单一单）</button>
+        </div>
+        <div id="products" class="muted" style="margin-top:10px">products: -</div>
+      </div>
 
-<div class="card">
-<button id="btnSeller">Become Seller</button>
-<button id="btnAdd">Add Product</button>
-<button id="btnLoad" class="primary">Load Products</button>
-<div id="products"></div>
-</div>
+      <div class="card" style="grid-column:1/-1">
+        <div class="label">Log（这里一定会有东西）</div>
+        <div id="log" class="log">loading…</div>
+      </div>
+    </div>
+  </div>
 
-<div class="card">
-<div id="log"></div>
-</div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ✅ 你的 Supabase（已填好）
+    const SUPABASE_URL = "https://zdfoelcwmmbvwtjhfixv.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZm9lbGN3bW1idnd0amhmaXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MzAzNjEsImV4cCI6MjA4NzMwNjM2MX0.Ije9hEA0q4NFnQlThh75BV-MQ0Ph95MFTss3FO2ANWc";
 
-<script>
+    const $ = (id)=>document.getElementById(id);
+    const logEl = $("log");
 
-const SUPABASE_URL = "https://zdfoelcwmmbvwtjhfixv.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZm9lbGN3bW1idnd0amhmaXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MzAzNjEsImV4cCI6MjA4NzMwNjM2MX0.Ije9hEA0q4NFnQlThh75BV-MQ0Ph95MFTss3FO2ANWc";
+    function log(msg){
+      const line = `[${new Date().toISOString()}] ${msg}`;
+      logEl.textContent = (logEl.textContent==="loading…" ? "" : (logEl.textContent + "\n")) + line;
+      logEl.scrollTop = logEl.scrollHeight;
+      console.log(line);
+    }
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 把所有 JS 错误也打到屏幕上
+    window.addEventListener("error", (e)=>log("❌ window.error: " + (e.message || e.error || "unknown")));
+    window.addEventListener("unhandledrejection", (e)=>log("❌ unhandledrejection: " + (e.reason?.message || e.reason || "unknown")));
 
-const log = (m)=>{ 
-  document.getElementById("log").innerHTML += m+"<br>";
-};
+    $("origin").textContent = "origin: " + location.origin;
 
-document.getElementById("origin").innerText = "Origin: " + location.origin;
+    // ✅ 初始化 Supabase
+    if(!window.supabase){
+      log("❌ Supabase SDK 没加载（检查网络/脚本被拦）");
+    }
 
-document.getElementById("btnTest").onclick = ()=> {
-  alert("按钮正常");
-  log("按钮点击正常");
-};
-
-document.getElementById("btnPing").onclick = async ()=> {
-  try{
-    const r = await fetch(SUPABASE_URL + "/rest/v1/");
-    log("Ping 状态: "+r.status);
-  }catch(e){
-    log("Ping 错误: "+e.message);
-  }
-};
-
-document.getElementById("btnLogin").onclick = async ()=> {
-  const email = document.getElementById("email").value;
-  if(!email){ alert("输入邮箱"); return; }
-
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: location.origin }
-  });
-
-  if(error){
-    log("登录失败: "+error.message);
-  }else{
-    log("Magic link 已发送");
-  }
-};
-
-document.getElementById("btnLogout").onclick = async ()=> {
-  const { error } = await supabase.auth.signOut();
-  if(error){
-    log("退出失败: "+error.message);
-  }else{
-    log("已退出");
-  }
-};
-
-document.getElementById("btnSeller").onclick = async ()=>{
-  const { data:session } = await supabase.auth.getSession();
-  if(!session.session){ log("未登录"); return; }
-
-  const user = session.session.user;
-
-  const { error } = await supabase
-    .from("sellers")
-    .upsert({ user_id:user.id, shop_name:"My Shop" });
-
-  if(error) log("创建卖家失败: "+error.message);
-  else log("卖家创建成功");
-};
-
-document.getElementById("btnAdd").onclick = async ()=>{
-  const { data:session } = await supabase.auth.getSession();
-  if(!session.session){ log("未登录"); return; }
-
-  const user = session.session.user;
-
-  const { error } = await supabase
-    .from("products")
-    .insert({
-      seller_user_id:user.id,
-      title:"Test Product",
-      price_cents:999,
-      stock:10
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
     });
 
-  if(error) log("添加商品失败: "+error.message);
-  else log("商品添加成功");
-};
+    function showAuth(session){
+      if(session?.user){
+        $("authState").textContent = "SIGNED_IN ✅";
+        $("userState").textContent = session.user.email || session.user.id;
+      }else{
+        $("authState").textContent = "SIGNED_OUT -";
+        $("userState").textContent = "-";
+      }
+    }
 
-document.getElementById("btnLoad").onclick = async ()=>{
-  const { data,error } = await supabase
-    .from("products")
-    .select("*")
-    .order("created_at",{ascending:false});
+    supabase.auth.onAuthStateChange((event, session)=>{
+      log(`onAuthStateChange: ${event} ${session?.user ? "✅" : "-"}`);
+      showAuth(session);
+    });
 
-  if(error){
-    log("加载失败: "+error.message);
-    return;
-  }
+    async function boot(){
+      log("JS running ✅");
+      const { data, error } = await supabase.auth.getSession();
+      if(error) log("❌ getSession error: " + error.message);
+      else log("getSession ok: " + (data?.session?.user ? "SIGNED_IN ✅" : "SIGNED_OUT -"));
+      showAuth(data.session);
+    }
 
-  document.getElementById("products").innerHTML =
-    data.map(p=>`<div>${p.title} - $${(p.price_cents/100).toFixed(2)}</div>`).join("");
-};
+    // ✅ Step1：弹窗测试（必须有）
+    $("btnAlert").onclick = ()=>{
+      alert("你点到了按钮 ✅");
+      log("clicked ✅ btnAlert");
+    };
 
-supabase.auth.onAuthStateChange((event, session)=>{
-  document.getElementById("auth").innerText =
-    session ? "已登录: "+session.user.email : "未登录";
-  log("Auth: "+event);
-});
+    // ✅ Ping Supabase（显示 HTTP 状态）
+    $("btnPing").onclick = async ()=>{
+      try{
+        log("Ping…");
+        const r = await fetch(SUPABASE_URL + "/rest/v1/", {
+          method:"GET",
+          headers:{
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": "Bearer " + SUPABASE_ANON_KEY
+          }
+        });
+        $("net").textContent = "network: REST status=" + r.status;
+        log("Ping HTTP=" + r.status + (r.status===200||r.status===401 ? " ✅" : " ⚠️"));
+      }catch(e){
+        $("net").textContent = "network: FAILED";
+        log("❌ Ping failed: " + (e?.message || e));
+      }
+    };
 
-</script>
+    // ✅ 强制刷新（解决 iOS 缓存/旧版本）
+    $("btnHardReload").onclick = ()=>{
+      log("Force reload…");
+      // 尽量清缓存痕迹
+      try{ localStorage.clear(); }catch(e){}
+      try{ sessionStorage.clear(); }catch(e){}
+      location.href = location.origin + location.pathname + "?v=" + Date.now();
+    };
 
+    // ✅ 发送 Magic Link
+    $("btnSend").onclick = async ()=>{
+      const email = $("email").value.trim();
+      if(!email){ alert("请输入邮箱"); log("❌ no email"); return; }
+      try{
+        log("Send link… redirectTo=" + location.origin);
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options:{ emailRedirectTo: location.origin }
+        });
+        if(error) throw error;
+        alert("已发送登录邮件 ✅\n去邮箱点链接，会回到网站自动登录。");
+        log("Send link OK ✅");
+      }catch(e){
+        alert("发送失败 ❌\n" + (e?.message || e));
+        log("❌ Send link failed: " + (e?.message || e));
+        log("检查：Email provider 是否启用 / Redirect URLs 是否包含 jkang.vercel.app");
+      }
+    };
+
+    // ✅ Logout（强制清 session + reload）
+    $("btnLogout").onclick = async ()=>{
+      try{
+        log("signOut…");
+        const { error } = await supabase.auth.signOut();
+        if(error) throw error;
+        log("signOut ok ✅");
+      }catch(e){
+        log("❌ signOut failed: " + (e?.message || e));
+      }
+      // iOS 有时缓存 token，直接强制清 + reload 最稳
+      try{ localStorage.clear(); }catch(e){}
+      try{ sessionStorage.clear(); }catch(e){}
+      setTimeout(()=>location.href = location.origin + location.pathname + "?logout=" + Date.now(), 150);
+    };
+
+    // ✅ Become Seller
+    $("btnBecomeSeller").onclick = async ()=>{
+      const { data } = await supabase.auth.getSession();
+      const u = data?.session?.user;
+      if(!u){ alert("请先登录"); log("❌ BecomeSeller: not logged in"); return; }
+      try{
+        log("Create seller… user=" + u.id);
+        const { error } = await supabase.from("sellers").upsert({
+          user_id: u.id,
+          shop_name: "JKang Shop"
+        }, { onConflict: "user_id" });
+        if(error) throw error;
+        alert("创建店铺成功 ✅");
+        log("Become seller OK ✅");
+      }catch(e){
+        alert("创建店铺失败 ❌\n" + (e?.message || e));
+        log("❌ Become seller failed: " + (e?.message || e));
+        log("多半原因：你没跑 RLS policies 那段 SQL");
+      }
+    };
+
+    // ✅ Add Product
+    $("btnAddProduct").onclick = async ()=>{
+      const { data } = await supabase.auth.getSession();
+      const u = data?.session?.user;
+      if(!u){ alert("请先登录"); log("❌ AddProduct: not logged in"); return; }
+      try{
+        const title = "Test Product " + Math.floor(Math.random()*9999);
+        log("Insert product… " + title);
+        const { error } = await supabase.from("products").insert({
+          seller_id: u.id,
+          title,
+          description: "这是测试商品，后面你可以改成实体/虚拟。",
+          price_cents: 199,
+          stock: 10,
+          image_url: "",
+          is_digital: false
+        });
+        if(error) throw error;
+        alert("上架成功 ✅ " + title);
+        log("Add product OK ✅");
+      }catch(e){
+        alert("上架失败 ❌\n" + (e?.message || e));
+        log("❌ Add product failed: " + (e?.message || e));
+        log("注意：必须先 Become Seller（sellers 有这用户）");
+      }
+    };
+
+    // ✅ Load Products
+    $("btnLoadProducts").onclick = async ()=>{
+      try{
+        log("Load products…");
+        const { data, error } = await supabase
+          .from("products")
+          .select("id,title,price_cents,stock,is_digital,created_at,seller_id")
+          .order("created_at", { ascending:false })
+          .limit(20);
+        if(error) throw error;
+        const list = data || [];
+        $("products").innerHTML = list.length
+          ? list.map(p=>`
+              <div class="prod">
+                <b>${p.title}</b>
+                <div class="muted">price: $${(p.price_cents/100).toFixed(2)} · stock: ${p.stock} · digital: ${p.is_digital}</div>
+                <div class="muted">id: ${p.id}</div>
+              </div>
+            `).join("")
+          : "products: (empty)";
+        log("Loaded ✅ " + list.length + " products");
+      }catch(e){
+        alert("读取商品失败 ❌\n" + (e?.message || e));
+        log("❌ Load products failed: " + (e?.message || e));
+      }
+    };
+
+    // ✅ Buy First Product（记录一笔订单）
+    $("btnBuyFirst").onclick = async ()=>{
+      const { data: sdata } = await supabase.auth.getSession();
+      const u = sdata?.session?.user;
+      if(!u){ alert("请先登录"); log("❌ Buy: not logged in"); return; }
+
+      try{
+        log("Buy first product…");
+        const { data: ps, error: pe } = await supabase
+          .from("products")
+          .select("id,price_cents")
+          .order("created_at", { ascending:false })
+          .limit(1);
+        if(pe) throw pe;
+        if(!ps?.length){ alert("没有商品可买，先 Add Product"); return; }
+
+        const p = ps[0];
+        const qty = 1;
+        const amount = (p.price_cents||0) * qty;
+
+        const { error: oe } = await supabase.from("orders").insert({
+          buyer_id: u.id,
+          product_id: p.id,
+          qty,
+          amount_cents: amount,
+          status: "pending"
+        });
+        if(oe) throw oe;
+
+        alert("下单记录成功 ✅（未收款版）");
+        log("Order inserted ✅ product=" + p.id + " amount_cents=" + amount);
+      }catch(e){
+        alert("下单失败 ❌\n" + (e?.message || e));
+        log("❌ Buy failed: " + (e?.message || e));
+      }
+    };
+
+    boot();
+  </script>
 </body>
 </html>
