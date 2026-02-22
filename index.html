@@ -3,31 +3,186 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>JKang Click Test</title>
+  <title>JKang Market · Login Debug</title>
   <style>
     body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#0b1024;color:#fff}
-    .wrap{max-width:900px;margin:0 auto;padding:18px}
+    .wrap{max-width:980px;margin:0 auto;padding:18px}
     .card{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);border-radius:18px;padding:14px;margin:12px 0}
-    button{padding:14px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#fff;color:#000;font-weight:900}
-    .log{margin-top:12px;white-space:pre-wrap;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
-      border-radius:14px;padding:12px;min-height:140px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    input{flex:1;min-width:220px;padding:12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);color:#fff;outline:none}
+    button{padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#fff;color:#000;font-weight:900}
+    button.ghost{background:transparent;color:#fff}
+    .muted{color:rgba(255,255,255,.65);font-size:13px;line-height:1.6}
+    .log{margin-top:10px;white-space:pre-wrap;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;padding:12px;min-height:220px;font-family:ui-monospace,Menlo,monospace;font-size:12px}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.25);font-size:12px}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>JKang Click Test</h1>
+    <h1>JKang Market · Login Debug</h1>
+    <div class="muted">目标：先把 Email Magic Link 登录做稳（能发邮件 + 点链接回来自动登录）。</div>
+
     <div class="card">
-      <button onclick="alert('你点到按钮 ✅'); document.getElementById('log').textContent += '\\nclicked ✅';">
-        点我（必须弹窗）
-      </button>
-      <div id="log" class="log">loading…（如果 JS 正常，会变成 JS running ✅）</div>
+      <div class="row">
+        <span class="tag" id="originTag">origin: -</span>
+        <span class="tag" id="sdkTag">sdk: -</span>
+        <span class="tag" id="authTag">auth: -</span>
+        <span class="tag" id="userTag">user: -</span>
+      </div>
+      <div style="height:10px"></div>
+      <div class="row">
+        <button id="btnAlert">点我（必须弹窗）</button>
+        <button id="btnPing">Ping Supabase</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Step 2：Email 登录（Magic Link）</div>
+      <div style="height:10px"></div>
+      <div class="row">
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        <button id="btnSend">Send Link</button>
+        <button id="btnLogout" class="ghost">Logout</button>
+      </div>
+      <div class="muted" style="margin-top:8px">
+        发送后去邮箱点链接，会回到 <b>同一个域名</b>（jkang.vercel.app）自动登录。
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Log（这里一定会出现原因）</div>
+      <div id="log" class="log">loading…</div>
     </div>
   </div>
 
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script>
-    // 只要 JS 有执行，Log 会立刻变化
-    const log = document.getElementById("log");
-    log.textContent = "JS running ✅\\n" + new Date().toISOString() + "\\norigin=" + location.origin;
+    /*********** 你只要改这两行 ***********/
+    const SUPABASE_URL = "https://zdfoelcwmmbvwtjhfixv.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZm9lbGN3bW1idnd0amhmaXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MzAzNjEsImV4cCI6MjA4NzMwNjM2MX0.Ije9hEA0q4NFnQlThh75BV-MQ0Ph95MFTss3FO2ANWc";
+    /****************************************/
+
+    const $ = (id)=>document.getElementById(id);
+    const logEl = $("log");
+    const log = (m)=>{ logEl.textContent += `\n[${new Date().toISOString()}] ${m}`; logEl.scrollTop = logEl.scrollHeight; };
+
+    // iPhone 没 console：全部写到 Log
+    window.addEventListener("error", (e)=> log("❌ window.onerror: " + (e.message || e.error || "unknown")));
+    window.addEventListener("unhandledrejection", (e)=> log("❌ unhandledrejection: " + (e.reason?.message || e.reason || "unknown")));
+
+    $("originTag").textContent = "origin: " + location.origin;
+
+    // 先确认 SDK 是否存在
+    if(!window.supabase){
+      log("❌ Supabase SDK 没加载成功（cdn 被挡/网络问题）");
+      $("sdkTag").textContent = "sdk: FAILED";
+      throw new Error("Supabase SDK missing");
+    }else{
+      $("sdkTag").textContent = "sdk: OK";
+      log("✅ Supabase SDK loaded");
+    }
+
+    // 初始化 client
+    if(!SUPABASE_URL.includes("supabase.co") || SUPABASE_ANON_KEY.startsWith("PASTE_")){
+      log("❌ 你还没填 SUPABASE_URL / SUPABASE_ANON_KEY");
+      $("authTag").textContent = "auth: CONFIG_MISSING";
+    }
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    });
+    log("✅ createClient ok");
+
+    function setAuthUI(session){
+      if(session?.user){
+        $("authTag").textContent = "auth: SIGNED_IN ✅";
+        $("userTag").textContent = "user: " + (session.user.email || session.user.id);
+      }else{
+        $("authTag").textContent = "auth: SIGNED_OUT -";
+        $("userTag").textContent = "user: -";
+      }
+    }
+
+    // 监听登录状态
+    supabase.auth.onAuthStateChange((event, session)=>{
+      log("onAuthStateChange: " + event);
+      setAuthUI(session);
+    });
+
+    // 页面启动：读 session（也会处理 magic link 回跳）
+    (async ()=>{
+      logEl.textContent = "JS running ✅";
+      try{
+        const { data, error } = await supabase.auth.getSession();
+        if(error) log("❌ getSession error: " + error.message);
+        else log("getSession ok: " + (data.session ? "SIGNED_IN ✅" : "SIGNED_OUT -"));
+        setAuthUI(data.session);
+      }catch(e){
+        log("❌ boot error: " + (e?.message || e));
+      }
+    })();
+
+    // 按钮：必须弹窗
+    $("btnAlert").onclick = ()=>{
+      alert("你点到按钮 ✅");
+      log("clicked alert ✅");
+    };
+
+    // Ping Supabase REST
+    $("btnPing").onclick = async ()=>{
+      log("Ping...");
+      try{
+        const r = await fetch(SUPABASE_URL + "/rest/v1/", { method:"GET" });
+        log("Ping HTTP " + r.status + " (200/401 都算通)");
+      }catch(e){
+        log("❌ Ping failed: " + (e?.message || e));
+      }
+    };
+
+    // 发 magic link
+    $("btnSend").onclick = async ()=>{
+      const email = $("email").value.trim();
+      if(!email){ alert("请输入邮箱"); log("❌ empty email"); return; }
+
+      log("Send OTP => " + email);
+      try{
+        const redirectTo = location.origin; // 必须在 Supabase Auth 里允许
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { emailRedirectTo: redirectTo }
+        });
+        if(error) throw error;
+        alert("已发送登录邮件 ✅ 去邮箱点链接");
+        log("✅ signInWithOtp ok (email sent)");
+      }catch(e){
+        log("❌ signInWithOtp failed: " + (e?.message || e));
+        alert("发送失败 ❌ 看 Log 的原因");
+      }
+    };
+
+    // logout
+    $("btnLogout").onclick = async ()=>{
+      log("signOut...");
+      try{
+        const { error } = await supabase.auth.signOut();
+        if(error) throw error;
+        log("signOut ok ✅");
+        // iOS 有时缓存 session：一起清
+        localStorage.clear();
+        sessionStorage.clear();
+        log("local/session storage cleared ✅");
+        const { data } = await supabase.auth.getSession();
+        log("after signOut: " + (data.session ? "STILL_SIGNED_IN ❌" : "SIGNED_OUT ✅"));
+        setAuthUI(data.session);
+        alert("已登出 ✅");
+      }catch(e){
+        log("❌ signOut failed: " + (e?.message || e));
+        alert("登出失败 ❌ 看 Log");
+      }
+    };
   </script>
 </body>
 </html>
