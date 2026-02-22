@@ -1,190 +1,130 @@
-<!doctype html>
-<html lang="zh-Hans">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Supabase Auth Debug</title>
+  <meta charset="utf-8">
+  <title>JKang Market</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;background:#0b1020;color:#fff}
-    .wrap{max-width:820px;margin:0 auto;padding:16px}
-    .card{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:14px;margin:12px 0}
-    input{width:100%;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(0,0,0,.25);color:#fff;outline:none}
-    button{padding:14px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:#fff;color:#000;font-weight:900;cursor:pointer}
-    button:disabled{opacity:.6;cursor:not-allowed}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(0,0,0,.22);margin:6px 6px 0 0;font-size:12px}
-    pre{white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.16);border-radius:14px;padding:12px;min-height:120px}
-    .ok{color:#7CFFB5} .bad{color:#FF6D8B} .muted{color:rgba(255,255,255,.7)}
+    body{font-family:Arial;padding:20px;background:#f5f5f5}
+    .card{background:white;padding:15px;margin:10px 0;border-radius:8px}
+    button{padding:8px 12px;margin-top:5px}
+    input{padding:6px;margin:4px 0}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h2>Supabase 登录/登出终极调试版</h2>
-    <div class="muted">目标：不允许“没反应”。所有结果都打印出来。</div>
 
-    <div class="card">
-      <div class="pill">origin: <span id="origin"></span></div>
-      <div class="pill">supabase-js: <span id="sdk"></span></div>
-      <div class="pill">client: <span id="client"></span></div>
-      <div class="pill">session: <span id="sess"></span></div>
-      <div class="pill">user: <span id="user"></span></div>
-    </div>
+<h2>JKang Market</h2>
 
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">Email 登录（Magic Link）</div>
-      <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
-      <div class="row">
-        <button id="sendBtn">Send Login Link</button>
-        <button id="refreshBtn">Refresh Session</button>
-        <button id="logoutBtn">Logout</button>
-      </div>
-      <div class="muted" style="margin-top:10px">
-        Redirect 会用 <b>window.location.origin</b>：你 Supabase 里 Redirect URLs 要包含 <b>https://你的域名/*</b>
-      </div>
-    </div>
+<div id="loginBox">
+  <input id="email" placeholder="email">
+  <button onclick="login()">Login</button>
+  <p id="msg"></p>
+</div>
 
-    <div class="card">
-      <div style="font-weight:900;margin-bottom:8px">Log</div>
-      <pre id="log"></pre>
-    </div>
-  </div>
+<div id="app" style="display:none">
+  <button onclick="logout()">Logout</button>
+  <h3>发布商品</h3>
+  <input id="title" placeholder="商品名">
+  <input id="price" placeholder="价格 (SGD)">
+  <button onclick="createProduct()">发布</button>
 
-  <!-- 加载 supabase-js（如果失败，页面会直接显示） -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://zdfoelcwmmbvwtjhfixv.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZm9lbGN3bW1idnd0amhmaXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MzAzNjEsImV4cCI6MjA4NzMwNjM2MX0.Ije9hEA0q4NFnQlThh75BV-MQ0Ph95MFTss3FO2ANWc";
+  <h3>商品列表</h3>
+  <div id="products"></div>
+</div>
 
-    const $ = (id)=>document.getElementById(id);
-    const logEl = $("log");
+<script>
+const supabase = window.supabase.createClient(
+  "https://zdfoelcwmmbvwtjhfixv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZm9lbGN3bW1idnd0amhmaXh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3MzAzNjEsImV4cCI6MjA4NzMwNjM2MX0.Ije9hEA0q4NFnQlThh75BV-MQ0Ph95MFTss3FO2ANWc"
+);
 
-    function log(...args){
-      const line = args.map(a=>{
-        if(a instanceof Error) return (a.stack || a.message);
-        if(typeof a === "object") return JSON.stringify(a, null, 2);
-        return String(a);
-      }).join(" ");
-      logEl.textContent += line + "\n";
-      console.log(...args);
-    }
-    function setText(id, txt, cls){
-      const el = $(id);
-      el.textContent = txt;
-      el.className = cls || "";
-    }
+async function login(){
+  const email = document.getElementById("email").value;
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options:{ emailRedirectTo: window.location.origin }
+  });
+  document.getElementById("msg").innerText =
+    error ? error.message : "Check your email!";
+}
 
-    $("origin").textContent = window.location.origin;
+async function logout(){
+  await supabase.auth.signOut();
+  location.reload();
+}
 
-    // 1) 检查 SDK 是否加载
-    const sdkOk = !!(window.supabase && window.supabase.createClient);
-    setText("sdk", sdkOk ? "loaded ✅" : "FAILED ❌", sdkOk ? "ok" : "bad");
+async function createProduct(){
+  const user = (await supabase.auth.getUser()).data.user;
+  if(!user) return alert("not logged in");
 
-    let client = null;
+  // 确保 seller 存在
+  await supabase.rpc("ensure_seller");
 
-    async function refreshBadges(){
-      try{
-        if(!client){
-          setText("client","not ready","bad");
-          setText("sess","-","muted");
-          setText("user","-","muted");
-          return;
-        }
-        setText("client","ready ✅","ok");
+  const title = document.getElementById("title").value;
+  const price = parseFloat(document.getElementById("price").value) * 100;
 
-        const { data, error } = await client.auth.getSession();
-        if(error) throw error;
+  const { error } = await supabase.from("products").insert({
+    seller_id: user.id,
+    title,
+    price_cents: price,
+    stock: 10
+  });
 
-        const session = data?.session || null;
-        setText("sess", session ? "YES ✅" : "NO", session ? "ok" : "muted");
-        setText("user", session?.user?.email || "-", session?.user?.email ? "ok" : "muted");
-        setText("user", session?.user?.email || "-", session?.user?.email ? "ok" : "muted");
-        setText("user", session?.user?.email || "-", session?.user?.email ? "ok" : "muted");
+  if(error) alert(error.message);
+  else{
+    alert("发布成功");
+    loadProducts();
+  }
+}
 
-        // 显示 user id 方便确认
-        setText("user", session?.user?.email ? `${session.user.email} (${session.user.id.slice(0,6)}…)` : "-", session?.user?.email ? "ok" : "muted");
-      }catch(e){
-        log("refreshBadges error:", e);
-        setText("sess","ERROR","bad");
-      }
-    }
+async function loadProducts(){
+  const { data } = await supabase.from("products")
+    .select("*")
+    .eq("is_active", true);
 
-    // 2) 初始化 client
-    try{
-      if(!sdkOk) throw new Error("supabase-js CDN 没加载成功（window.supabase 不存在）");
-      client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-      });
-      log("createClient ok ✅");
-    }catch(e){
-      log("createClient FAILED ❌", e);
-    }
+  const box = document.getElementById("products");
+  box.innerHTML = "";
 
-    // 监听登录状态变化
-    if(client){
-      client.auth.onAuthStateChange((event, session)=>{
-        log("onAuthStateChange:", event, session?.user?.email || "-");
-        refreshBadges();
-      });
-    }
+  data.forEach(p=>{
+    const div = document.createElement("div");
+    div.className="card";
+    div.innerHTML = `
+      <b>${p.title}</b><br>
+      SGD ${(p.price_cents/100).toFixed(2)}<br>
+      <button onclick="buy('${p.id}', ${p.price_cents})">购买</button>
+    `;
+    box.appendChild(div);
+  });
+}
 
-    // 3) 按钮绑定：Send / Refresh / Logout
-    $("refreshBtn").onclick = async ()=>{
-      log("== Refresh Session ==");
-      await refreshBadges();
-    };
+async function buy(id, price){
+  const user = (await supabase.auth.getUser()).data.user;
+  if(!user) return alert("login first");
 
-    $("sendBtn").onclick = async ()=>{
-      const email = $("email").value.trim();
-      log("== Send Login Link ==", email);
-      if(!email){ log("请输入邮箱"); return; }
-      if(!client){ log("client 不存在（SDK没加载/初始化失败）"); return; }
+  const { data: order } = await supabase.from("orders")
+    .insert({ buyer_id:user.id, total_cents:price })
+    .select()
+    .single();
 
-      $("sendBtn").disabled = true;
-      try{
-        const redirectTo = window.location.origin; // 你的 Redirect URLs 需要允许 https://xxx/*
-        const { data, error } = await client.auth.signInWithOtp({
-          email,
-          options: { emailRedirectTo: redirectTo }
-        });
-        if(error) throw error;
-        log("OTP sent ✅", data || {});
-        alert("已发送登录邮件 ✅ 去邮箱点链接");
-      }catch(e){
-        log("OTP send FAILED ❌", e);
-        alert("发送失败 ❌ 看 Log");
-      }finally{
-        $("sendBtn").disabled = false;
-      }
-    };
+  await supabase.from("order_items").insert({
+    order_id: order.id,
+    product_id: id,
+    title_snapshot: "item",
+    price_cents_snapshot: price,
+    qty:1
+  });
 
-    $("logoutBtn").onclick = async ()=>{
-      log("== Logout ==");
-      if(!client){ log("client 不存在"); return; }
-      try{
-        const { error } = await client.auth.signOut();
-        if(error) throw error;
+  alert("下单成功（未付款版）");
+}
 
-        // 双保险：把本地残留 session 也清掉
-        try{
-          localStorage.removeItem("supabase.auth.token");
-          localStorage.removeItem("sb-" + new URL(SUPABASE_URL).host + "-auth-token");
-        }catch(_){}
+supabase.auth.onAuthStateChange((event, session)=>{
+  if(session){
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("app").style.display="block";
+    loadProducts();
+  }
+});
+</script>
 
-        log("signOut ok ✅");
-        alert("已登出 ✅");
-      }catch(e){
-        log("signOut FAILED ❌", e);
-        alert("登出失败 ❌ 看 Log");
-      }finally{
-        refreshBadges();
-      }
-    };
-
-    // 首次刷新状态
-    (async ()=>{
-      log("JS running ✅", new Date().toISOString());
-      await refreshBadges();
-    })();
-  </script>
 </body>
 </html>
